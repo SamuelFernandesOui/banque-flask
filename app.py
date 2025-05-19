@@ -1,20 +1,19 @@
-# Import des modules necessaires
-from flask import Flask, request, render_template, session
+import os
 import psycopg2
+from flask import Flask, request, render_template, session
 
-# Creation de l'application Flask
+# Création de l'application Flask
 app = Flask(__name__)
+app.secret_key = "une_clé_secrète_à_changer"  # À externaliser plus tard dans un .env
 
-app.secret_key = "une_clé_secrète_à_changer"
-
-# Connexion a PostgreSQL
+# Connexion à PostgreSQL via variables d'environnement (compatibles Docker)
 conn = psycopg2.connect(
-    dbname="clients",     # Nom de ta base de donnees
-    user="postgres",           # Nom d'utilisateur PostgreSQL
-    password="abc123",               # Mets ton mot de passe ici si besoin
-    host="localhost"           # Adresse de la base (localhost = ta machine)
+    dbname=os.getenv("DB_NAME"),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD"),
+    host=os.getenv("DB_HOST")
 )
-cur = conn.cursor()  # Objet qui sert a executer les requetes SQL
+cur = conn.cursor()
 
 @app.route("/", methods=["GET", "POST"])
 def formulaire():
