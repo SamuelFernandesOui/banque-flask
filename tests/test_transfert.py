@@ -1,3 +1,5 @@
+import pytest
+
 def verifier_solde(solde, montant):
     return solde >= montant
 

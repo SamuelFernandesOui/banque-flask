@@ -1,6 +1,10 @@
 import os
 import psycopg2
 from flask import Flask, request, render_template, session
+from dotenv import load_dotenv 
+
+
+load_dotenv()  # charge les variables depuis .env
 
 # Création de l'application Flask
 app = Flask(__name__)

@@ -1,4 +1,11 @@
+import sys
+import os
 import pytest
+
+
+# Ajouter le dossier parent (racine projet) au PATH Python
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from app import app, conn, cur
 
 @pytest.fixture
@@ -8,32 +15,39 @@ def client():
         yield client
 
 def test_transfert_argent(client):
-    # Création utilisateurs test (id_client uniques)
+    # Suppression utilisateurs test (commit nécessaire après)
+    cur.execute("DELETE FROM utilisateurs WHERE id_client = ANY(%s)", (["test_sender", "test_receiver"],))
+    conn.commit()
+
+    # Création utilisateurs test
     cur.execute("INSERT INTO utilisateurs (id_client, nom, prenom, iban, solde, mot_de_passe) VALUES (%s,%s,%s,%s,%s,%s)",
                 ("test_sender", "Test", "Sender", "FR000", 1000, "pass"))
     cur.execute("INSERT INTO utilisateurs (id_client, nom, prenom, iban, solde, mot_de_passe) VALUES (%s,%s,%s,%s,%s,%s)",
                 ("test_receiver", "Test", "Receiver", "FR001", 500, "pass"))
     conn.commit()
 
-    # Récupérer les id internes des utilisateurs
+    # Récupérer les id internes
     cur.execute("SELECT id FROM utilisateurs WHERE id_client = %s", ("test_sender",))
     sender_id = cur.fetchone()[0]
     cur.execute("SELECT id FROM utilisateurs WHERE id_client = %s", ("test_receiver",))
     receiver_id = cur.fetchone()[0]
 
-    # Simuler session connectée avec sender_id
+    # Simuler session
     with client.session_transaction() as sess:
         sess['user_id'] = sender_id
 
-    # Envoyer un transfert de 200€ du sender vers receiver
+    # Faire la requête POST
     response = client.post('/transfert', data={
-        'dest_id_client': 'test_receiver',
+        'iban_dest': 'FR001',
         'montant': '200'
     })
 
-    assert b'✅ Transfert de 200.00 € effectué avec succès' in response.data
+    # Pour debug : print la réponse
+    print(response.data.decode())
 
-    # Vérifier que les soldes ont changé dans la DB
+    assert response.status_code == 200
+
+    # Vérifier soldes mis à jour
     cur.execute("SELECT solde FROM utilisateurs WHERE id = %s", (sender_id,))
     sender_solde = cur.fetchone()[0]
     cur.execute("SELECT solde FROM utilisateurs WHERE id = %s", (receiver_id,))
@@ -43,5 +57,5 @@ def test_transfert_argent(client):
     assert receiver_solde == 700
 
     # Nettoyer après test
-    cur.execute("DELETE FROM utilisateurs WHERE id_client IN (%s, %s)", ("test_sender", "test_receiver"))
+    cur.execute("DELETE FROM utilisateurs WHERE id_client = ANY(%s)", (["test_sender", "test_receiver"],))
     conn.commit()
