@@ -1,14 +1,10 @@
-name: CI Flask PostgreSQL
+name: CI
 
 on:
   push:
-    branches:
-      - dev
-      - main
+    branches: [dev, main]
   pull_request:
-    branches:
-      - dev
-      - main
+    branches: [dev, main]
 
 jobs:
   test:
@@ -17,12 +13,12 @@ jobs:
     services:
       postgres:
         image: postgres:16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: abc123
-          POSTGRES_DB: clients
         ports:
           - 5432:5432
+        env:
+          POSTGRES_DB: clients
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: abc123
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -30,18 +26,30 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'  
+          python-version: '3.12'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
+      - name: Wait for Postgres to be ready
+        run: |
+          until pg_isready -h localhost -p 5432; do
+            echo "Waiting for postgres..."
+            sleep 2
+          done
+
+      - name: Initialize DB
+        env:
+          PGPASSWORD: abc123
+        run: |
+          psql -h localhost -U postgres -d clients -f ./db_init/init.sql
 
       - name: Run tests
         env:
@@ -50,5 +58,4 @@ jobs:
           DB_PASSWORD: abc123
           DB_HOST: localhost
         run: |
-          # Ici tu peux lancer tes tests unitaires par exemple :
           pytest
