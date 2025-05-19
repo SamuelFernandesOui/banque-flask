@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Modifier utilisateur</title>
+</head>
+<body>
+    <h1>Modifier l'utilisateur ID {{ id }}</h1>
+    <form method="POST">
+        <label>Nom :</label><br>
+        <input type="text" name="nom" value="{{ utilisateur[0] }}" required><br><br>
+
+        <label>Prénom :</label><br>
+        <input type="text" name="prenom" value="{{ utilisateur[1] }}" required><br><br>
+
+        <label>IBAN :</label><br>
+        <input type="text" name="iban" value="{{ utilisateur[2] }}" required><br><br>
+
+        <input type="submit" value="Enregistrer les modifications">
+    </form>
+    <br>
+    <a href="/utilisateurs">⬅️ Retour</a>
+</body>
+</html>

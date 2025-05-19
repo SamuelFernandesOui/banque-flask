@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des utilisateurs</title>
+</head>
+<body>
+    <h1>Utilisateurs enregistrés</h1>
+    <table border="1" cellpadding="10">
+        <tr>
+            <th>ID</th>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>IBAN</th>
+            <th>Actions</th>
+        </tr>
+        {% for user in utilisateurs %}
+        <tr>
+            <td>{{ user[0] }}</td>
+            <td>{{ user[1] }}</td>
+            <td>{{ user[2] }}</td>
+            <td>{{ user[3] }}</td>
+            <td>
+                <form method="POST" action="/supprimer/{{ user[0] }}" style="display:inline;">
+                    <button type="submit">🗑️ Supprimer</button>
+                </form>
+                <form method="GET" action="/modifier/{{ user[0] }}" style="display:inline;">
+                    <button type="submit">✏️ Modifier</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br>
+    <a href="/">⬅️ Ajouter un utilisateur</a>
+</body>
+</html>

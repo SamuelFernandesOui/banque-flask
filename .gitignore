@@ -1,0 +1,16 @@
+# Environnement virtuel
+venv/
+
+# Fichiers compilés Python
+__pycache__/
+*.py[cod]
+
+# Secrets
+.env
+
+# Bases SQLite (si jamais)
+*.db
+
+# IDE
+.vscode/
+.idea/
