@@ -51,6 +51,13 @@ jobs:
         run: |
           psql -h localhost -U postgres -d clients -f ./db_init/init.sql
 
+      - name: Scan de sécurité avec Bandit
+        run: bandit -r . -ll
+        
+      - name: Scan des dépendances avec Safety
+        run: safety check --full-report
+
+
       - name: Run tests
         env:
           DB_NAME: clients
