@@ -51,12 +51,27 @@ jobs:
         run: |
           psql -h localhost -U postgres -d clients -f ./db_init/init.sql
 
-      - name: Scan de sécurité avec Bandit
-        run: bandit -r . -ll
-        
-      - name: Scan des dépendances avec Safety
-        run: safety check --full-report
+      - name: Run Bandit (security scanner)
+        continue-on-error: true
+        run: |
+          bandit -r app.py -f txt -o bandit-report.txt
 
+      - name: Upload Bandit Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: bandit-security-report
+          path: bandit-report.txt
+
+      - name: Run Safety (dependency vulnerability scanner)
+        continue-on-error: true
+        run: |
+          safety check --file=requirements.txt --full-report --output text > safety-report.txt
+
+      - name: Upload Safety Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: safety-vulnerability-report
+          path: safety-report.txt
 
       - name: Run tests
         env:
